@@ -74,6 +74,9 @@ def ec2_avg_cpu_utilization(clusterName, asgData, cwclient):
         Period=60,
         Statistics=['Average']
     )
+
+    print '*** Average CPU: {}'.format(response['Datapoints'][0]['Average'])
+
     return response['Datapoints'][0]['Average']
 
 
@@ -171,7 +174,7 @@ def drain_instance(containerInstanceId, ecsClient, clusterArn):
         logger({'DrainingError': e})
 
 
-def future_metric(activeInstanceCount, metricValue):
+def future_metric(activeInstanceCount, metricValue, metricName):
     # If the cluster were to scale in an instance, calculate the effect on the given metric value
     # return metric_value*active_instance_count / active_instance_count-1
     if activeInstanceCount > 1:
@@ -179,7 +182,7 @@ def future_metric(activeInstanceCount, metricValue):
     else:
         return 100
 
-    print '*** Current: {} | Future : {}'.format(metricValue, futureValue)
+    print '*** {}: Current: {} | Future : {}'.format(metricName, metricValue, futureValue)
 
     return futureValue
 
@@ -277,8 +280,8 @@ def main(run='normal'):
 
         if (clusterCpuReservation < FUTURE_CPU_TH and
            clusterMemReservation < FUTURE_MEM_TH and
-           future_metric(activeInstanceCount, clusterCpuReservation) < FUTURE_CPU_TH and
-           future_metric(activeInstanceCount, clusterMemReservation) < FUTURE_MEM_TH):
+           future_metric(activeInstanceCount, clusterCpuReservation, 'CPU') < FUTURE_CPU_TH and
+           future_metric(activeInstanceCount, clusterMemReservation, 'MEM') < FUTURE_MEM_TH):
         # Future reservation levels allow scale
             if DRAIN_ALL_EMPTY_INSTANCES and emptyInstances.keys():
             # There are empty instances                
