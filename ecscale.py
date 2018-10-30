@@ -3,7 +3,7 @@ import datetime
 from optparse import OptionParser
 import os
 
-SCALE_IN_CPU_TH = 30
+SCALE_IN_CPU_TH = 60
 SCALE_IN_MEM_TH = 60
 FUTURE_CPU_TH = 70
 FUTURE_MEM_TH = 70
