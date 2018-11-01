@@ -80,14 +80,23 @@ def ec2_avg_cpu_utilization(clusterName, asgData, cwclient):
     return response['Datapoints'][0]['Average']
 
 
-def asg_on_min_state(clusterName, asgData, asgClient, activeInstanceCount):
+def asg_scalable(clusterName, asgData, asgClient, activeInstanceCount):
     asg = find_asg(clusterName, asgData)
+
+    if asg is None:
+        print '{}: ASG not found'.format(clusterName)
+        return False
+
     for sg in asgData['AutoScalingGroups']:
         if sg['AutoScalingGroupName'] == asg:
             if activeInstanceCount <= sg['MinSize']:
+                print '{}: ASG is at ({}) or below MinSize ({})'.format(clusterName, activeInstanceCount, sg['MinSize'])
+                return False
+            else:
                 return True
-    
-    return False 
+
+    print '{}: ASG not found during loop'.format(clusterName)
+    return False
 
 
 def empty_instances(clusterArn, activeContainerDescribed):
@@ -187,16 +196,6 @@ def future_metric(activeInstanceCount, metricValue, metricName):
     return futureValue
 
 
-def asg_scaleable(asgData, clusterName):
-    asg = find_asg(clusterName, asgData)
-    for group in asgData['AutoScalingGroups']:
-        if group['AutoScalingGroupName'] == asg:
-            return True if group['MinSize'] < group['DesiredCapacity'] else False
-    else:
-        print 'Cannot find AutoScalingGroup to verify scaleability'
-        return False
-
-
 def retrieve_cluster_data(ecsClient, cwClient, asgClient, cluster):
     clusterName = cluster.split('/')[1]
     print '*** {} ***'.format(clusterName)
@@ -274,8 +273,7 @@ def main(run='normal'):
                 else:
                     print 'Draining instance not empty'
 
-        if asg_on_min_state(clusterName, asgData, asgClient, activeInstanceCount):
-            print '{}: in Minimum state, skipping'.format(clusterName) 
+        if not asg_scalable(clusterName, asgData, asgClient, activeInstanceCount):
             continue
 
         if (clusterCpuReservation < FUTURE_CPU_TH and
