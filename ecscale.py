@@ -3,14 +3,14 @@ import datetime
 from optparse import OptionParser
 import os
 
-SCALE_IN_CPU_TH = 60
-SCALE_IN_MEM_TH = 60
-FUTURE_CPU_TH = 70
-FUTURE_MEM_TH = 70
-ASG_PREFIX = 'ecs-'
-ASG_SUFFIX = ''
-DRAIN_ALL_EMPTY_INSTANCES = False
-ECS_AVOID_STR = 'awseb'
+SCALE_IN_CPU_TH = int(os.getenv('SCALE_IN_CPU_TH', 60))
+SCALE_IN_MEM_TH = int(os.getenv('SCALE_IN_MEM_TH', 60))
+FUTURE_CPU_TH = int(os.getenv('FUTURE_CPU_TH', 70))
+FUTURE_MEM_TH = int(os.getenv('FUTURE_MEM_TH', 70))
+ASG_PREFIX = os.getenv('ASG_PREFIX', '')
+ASG_SUFFIX = os.getenv('ASG_SUFFIX', '')
+DRAIN_ALL_EMPTY_INSTANCES = bool(int(os.getenv('DRAIN_ALL_EMPTY_INSTANCES', 0)))
+ECS_AVOID_STR = os.getenv('ECS_AVOID_STR', 'awseb')
 logline = {}
 
 def clusters(ecsClient):
